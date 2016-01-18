@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
 ###
 
-{ compact, flatten, select, reject, isArray, isFunction } = require 'lodash'
+{ compact, flatten, filter, reject, isArray, isFunction } = require 'lodash'
 querystring = require 'querystring'
 
 class Builder
@@ -33,7 +33,7 @@ class Router
   route: (name, path, bindings..., handler) =>
     @routes[name] = path
     methods = [ 'get', 'post', 'put', 'patch', 'delete', 'all', 'options' ]
-    supported = select methods, (verb) -> handler[verb]?
+    supported = filter methods, (verb) -> handler[verb]?
     unsupported = reject methods, (verb) -> handler[verb]?
     for it, index in bindings
       bindings[index] = all: it if isFunction it or isArray it
@@ -41,8 +41,8 @@ class Router
       middleware = compact flatten (binding[verb] ? binding.all for binding in bindings), true
       stack = compact flatten [ middleware, handler.middleware, handler[verb] ], true
       @app[verb] path, flatten [
-        select stack, (it) -> it.length < 4 # req middleware
-        select stack, (it) -> it.length > 3 # err middleware
+        filter stack, (it) -> it.length < 4 # req middleware
+        filter stack, (it) -> it.length > 3 # err middleware
       ], true
     supported.push 'head' if 'get' in supported
     for verb in unsupported

@@ -7,7 +7,7 @@
 ###
 
 { compact, flatten, filter, reject, isArray, isFunction } = require 'lodash'
-querystring = require 'querystring'
+qs = require 'qs'
 
 class Builder
 
@@ -68,7 +68,7 @@ class Router
       value = params[name] ? ''
       delete params[name]
       url = url.replace route_param, value
-    query = querystring.unescape querystring.stringify(params)
+    query = qs.stringify params, encode: false
     url = url.replace /\/$/, '' if url.length > 1
     url += "?#{query}" if query.length
     url = "#{req.protocol}://#{req.get 'HOST'}#{url}" if full

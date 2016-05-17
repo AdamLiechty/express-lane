@@ -1,6 +1,6 @@
 {
   "name": "express-lane",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "an express routing extension that provides named, resourceful and reversible routes",
   "keywords": [
     "express",
@@ -26,7 +26,8 @@
   },
   "dependencies": {
     "express": ">=4.0.0",
-    "lodash": ">=3.0.0"
+    "lodash": ">=3.0.0",
+    "qs": ">=6.0.0"
   },
   "devDependencies": {
     "grunt": "^0.4.5",

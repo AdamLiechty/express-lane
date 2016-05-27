@@ -32,24 +32,33 @@ class Router
 
   route: (name, path, bindings..., handler) =>
     @routes[name] = path
-    methods = [ 'get', 'post', 'put', 'patch', 'delete', 'all', 'options' ]
-    supported = filter methods, (verb) -> handler[verb]?
-    unsupported = reject methods, (verb) -> handler[verb]?
+    verbs =
+      get: [ 'get', 'GET' ]
+      post: [ 'post', 'POST' ]
+      put: [ 'put', 'PUT' ]
+      patch: [ 'patch' ]
+      delete: [ 'delete', 'DELETE', 'del' ]
+      all: [ 'all' ]
+      options: [ 'options', 'OPTIONS' ]
+    resolve = (verb) ->
+      for alias in verbs[verb]
+        return handler[alias] if handler[alias]?
+      undefined
+    supported = ( verb for verb of verbs when resolve(verb)? )
     for it, index in bindings
       bindings[index] = all: it if isFunction it or isArray it
     for verb in supported
       middleware = compact flatten (binding[verb] ? binding.all for binding in bindings), true
-      stack = compact flatten [ middleware, handler.middleware, handler[verb] ], true
+      stack = compact flatten [ middleware, handler.middleware, resolve(verb) ], true
       @app[verb] path, flatten [
         filter stack, (it) -> it.length < 4 # req middleware
         filter stack, (it) -> it.length > 3 # err middleware
       ], true
     supported.push 'head' if 'get' in supported
-    for verb in unsupported
-      unsupported_method = (req, res, next) ->
+    unless 'all' in supported
+      @app.all path, (req, res, next) ->
         res.set 'allow', (verb.toUpperCase() for verb in supported).join ', '
         res.sendStatus 405
-      @app[verb](path, unsupported_method)
 
   custom: (type, custom...) =>
     if custom.length is 1 and isFunction(custom[0]) and custom[0].length is 0
